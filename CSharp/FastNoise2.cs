@@ -434,7 +434,7 @@ class FastNoise
     private static extern void fnGenTileable2D(IntPtr node, float[] noiseOut,
                                     int xStart, int yStart,
                                     int xSize, int ySize,
-                                    float xRepeat, yRepeat,
+                                    float xRepeat, float yRepeat,
                                     float frequency, int seed, float[] outputMinMax);
 
     [DllImport(NATIVE_LIB)]
