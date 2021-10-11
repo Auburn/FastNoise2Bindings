@@ -206,6 +206,17 @@ class FastNoise
         fnGenTileable2D(mNodeHandle, noiseOut, xSize, ySize, frequency, seed, minMax);
         return new OutputMinMax(minMax);
     }
+    
+    public OutputMinMax GenTileable2DRepeat(float[] noiseOut,
+                                   int xStart, int yStart,
+                                   int xSize, int ySize,
+                                   float xRepeat, float yRepeat,
+                                   float frequency, int seed)
+    {
+        float[] minMax = new float[2];
+        fnGenTileable2DRepeat(mNodeHandle, noiseOut, xStart, yStart, xSize, ySize, xRepeat, yRepeat, frequency, seed, minMax);
+        return new OutputMinMax(minMax);
+    }
 
     public OutputMinMax GenPositionArray2D(float[] noiseOut,
                                          float[] xPosArray, float[] yPosArray,
@@ -417,6 +428,13 @@ class FastNoise
     [DllImport(NATIVE_LIB)]
     private static extern void fnGenTileable2D(IntPtr node, float[] noiseOut,
                                     int xSize, int ySize,
+                                    float frequency, int seed, float[] outputMinMax);
+    
+    [DllImport(NATIVE_LIB)]
+    private static extern void fnGenTileable2D(IntPtr node, float[] noiseOut,
+                                    int xStart, int yStart,
+                                    int xSize, int ySize,
+                                    float xRepeat, yRepeat,
                                     float frequency, int seed, float[] outputMinMax);
 
     [DllImport(NATIVE_LIB)]
