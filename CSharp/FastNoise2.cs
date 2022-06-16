@@ -21,7 +21,7 @@ class FastNoise
         public void Merge(OutputMinMax other)
         {
             min = Math.Min(min, other.min);
-            max = Math.Min(max, other.max);
+            max = Math.Max(max, other.max);
         }
 
         public float min;
