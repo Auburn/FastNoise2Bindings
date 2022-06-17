@@ -1,8 +1,8 @@
 # Unity FastNoise2 Native Bindings
 for the [FastNoise2](https://github.com/Auburn/FastNoise2) noise generation library, using NativeArray, Jobs and Burst.  
 
-[Example usage]
-Full example [here](https://github.com/Neovariance/FastNoise2Bindings/blob/master/UnityProject/Assets/FastNoise2/NativeFastNoise2Test.cs)
+
+[Complete Example usage] (https://github.com/Neovariance/FastNoise2Bindings/blob/master/UnityProject/Assets/FastNoise2/NativeFastNoise2Test.cs)
 
 ```c#
 [BurstCompile]
