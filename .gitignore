@@ -371,3 +371,5 @@ UnityProject/.vs/
 UnityProject/.vsconfig
 UnityProject/UnityProject.sln
 UnityProject/**.csproj
+
+!UnityProject/Packages/*
