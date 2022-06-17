@@ -325,7 +325,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1796141080}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ed5be08caaca7544918da4448bbff8c, type: 3}
+  m_Script: {fileID: 11500000, guid: c34a5718d0ed7ac4b984d5ffd7cba219, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Notices: "Use the context menus (right click) to generate test textures,\n\nyou
