@@ -6,7 +6,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;
-using static NativeFastNoise2;
+using static FastNoise;
 using static Unity.Mathematics.math;
 
 public class NativeFastNoise2Test : MonoBehaviour
@@ -95,19 +95,19 @@ public class NativeFastNoise2Test : MonoBehaviour
     }
 
 
-    private NativeFastNoise2 SetupFastNoise()
+    private FastNoise SetupFastNoise()
     {
         //Setup is in managed code (Update, OnUpdate) and then the actual work can be done in burst jobs
 
         if (UseEncodedTree)
         {
-            NativeFastNoise2 nodeTree = FromEncodedNodeTree(EncodedTree);
+            FastNoise nodeTree = FromEncodedNodeTree(EncodedTree);
             Assert.IsNotNull(nodeTree, "invalid encoded tree");
             return nodeTree;
         }
 
-        NativeFastNoise2 fractal = new NativeFastNoise2("FractalFBm");
-        fractal.Set("Source", new NativeFastNoise2("Simplex"));
+        FastNoise fractal = new FastNoise("FractalFBm");
+        fractal.Set("Source", new FastNoise("Simplex"));
         fractal.Set("Gain", 0.3f);
         fractal.Set("Lacunarity", 0.6f);
         return fractal;
@@ -131,7 +131,7 @@ public class NativeFastNoise2Test : MonoBehaviour
     public void TestDirect()
     {
         texture2DDirect = null;
-        NativeFastNoise2 fastNoise = SetupFastNoise();
+        FastNoise fastNoise = SetupFastNoise();
 
         var noiseOut = new NativeArray<float>(TexSize.x * TexSize.y, Allocator.Temp);
 
@@ -148,7 +148,7 @@ public class NativeFastNoise2Test : MonoBehaviour
     {
         texture2DJob = null;
 
-        NativeFastNoise2 fastNoise = SetupFastNoise();
+        FastNoise fastNoise = SetupFastNoise();
 
         IntPtr nodePtr = fastNoise.NodeHandlePtr; //with this pointer we can now call static fastnoise API
 
@@ -183,7 +183,7 @@ public class NativeFastNoise2Test : MonoBehaviour
     {
         texture2DParallelJob = null;
 
-        NativeFastNoise2 fastNoise = SetupFastNoise();
+        FastNoise fastNoise = SetupFastNoise();
 
         IntPtr nodePtr = fastNoise.NodeHandlePtr;
 
