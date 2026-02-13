@@ -24,12 +24,12 @@ class BitmapGenerator
         maxSmooth.Set("LHS", fractal);
         maxSmooth.Set("RHS", addDim);
 
-        Console.WriteLine("SIMD Level " + maxSmooth.GetSIMDLevel());
+        Console.WriteLine("SIMD Level " + maxSmooth.GetActiveFeatureSet());
 
         GenerateBitmap(maxSmooth, "testMetadata");
 
         // Simplex fractal ENT
-        FastNoise nodeTree = FastNoise.FromEncodedNodeTree("DQAFAAAAAAAAQAgAAAAAAD8AAAAAAA==");
+        FastNoise nodeTree = FastNoise.FromEncodedNodeTree("DQkGDA==");
 
         // Encoded node trees can be invalid and return null
         if (nodeTree != null)
@@ -65,7 +65,7 @@ class BitmapGenerator
             }
             // Image data
             float[] noiseData = new float[size * size];
-            FastNoise.OutputMinMax minMax = fastNoise.GenUniformGrid2D(noiseData, 0, 0, size, size, 0.02f, 1337);
+            FastNoise.OutputMinMax minMax = fastNoise.GenUniformGrid2D(noiseData, 0, 0, size, size, 0.02f, 0.02f, 1337);
 
             float scale = 255.0f / (minMax.max - minMax.min);
 
