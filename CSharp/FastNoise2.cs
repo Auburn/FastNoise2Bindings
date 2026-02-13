@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 class FastNoise : IDisposable
 {
@@ -12,7 +13,7 @@ class FastNoise : IDisposable
             max = maxValue;
         }
 
-        public OutputMinMax(float[] nativeOutputMinMax)
+        public OutputMinMax(ReadOnlySpan<float> nativeOutputMinMax)
         {
             min = nativeOutputMinMax[0];
             max = nativeOutputMinMax[1];
@@ -185,72 +186,140 @@ class FastNoise : IDisposable
         }
     }
 
-    public OutputMinMax GenUniformGrid2D(float[] noiseOut,
-                                   float xOffset, float yOffset,
-                                   int xCount, int yCount,
-                                   float xStepSize, float yStepSize, int seed)
+    public OutputMinMax GenUniformGrid2D(Span<float> noiseOut,
+                            float xOffset, float yOffset,
+                            int xCount, int yCount,
+                            float xStepSize, float yStepSize, int seed)
     {
-        float[] minMax = new float[2];
-        fnGenUniformGrid2D(mNodeHandle, noiseOut, xOffset, yOffset, xCount, yCount, xStepSize, yStepSize, seed, minMax);
+        if (noiseOut.Length < xCount * yCount)
+            throw new ArgumentException($"Output buffer too small. Required: {xCount * yCount}, Provided: {noiseOut.Length}");
+
+        Span<float> minMax = stackalloc float[2];
+        fnGenUniformGrid2DSpan(mNodeHandle, 
+            ref MemoryMarshal.GetReference(noiseOut),
+            xOffset, yOffset, xCount, yCount, 
+            xStepSize, yStepSize, seed, 
+            ref MemoryMarshal.GetReference(minMax));
         return new OutputMinMax(minMax);
     }
 
-    public OutputMinMax GenUniformGrid3D(float[] noiseOut,
-                                   float xOffset, float yOffset, float zOffset,
-                                   int xCount, int yCount, int zCount,
-                                   float xStepSize, float yStepSize, float zStepSize, int seed)
+    public OutputMinMax GenUniformGrid3D(Span<float> noiseOut,
+                            float xOffset, float yOffset, float zOffset,
+                            int xCount, int yCount, int zCount,
+                            float xStepSize, float yStepSize, float zStepSize, int seed)
     {
-        float[] minMax = new float[2];
-        fnGenUniformGrid3D(mNodeHandle, noiseOut, xOffset, yOffset, zOffset, xCount, yCount, zCount, xStepSize, yStepSize, zStepSize, seed, minMax);
+        if (noiseOut.Length < xCount * yCount * zCount)
+            throw new ArgumentException($"Output buffer too small. Required: {xCount * yCount * zCount}, Provided: {noiseOut.Length}");
+
+        Span<float> minMax = stackalloc float[2];
+        fnGenUniformGrid3DSpan(mNodeHandle,
+            ref MemoryMarshal.GetReference(noiseOut),
+            xOffset, yOffset, zOffset, 
+            xCount, yCount, zCount,
+            xStepSize, yStepSize, zStepSize, seed,
+            ref MemoryMarshal.GetReference(minMax));
         return new OutputMinMax(minMax);
     }
 
-    public OutputMinMax GenUniformGrid4D(float[] noiseOut,
-                                   float xOffset, float yOffset, float zOffset, float wOffset,
-                                   int xCount, int yCount, int zCount, int wCount,
-                                   float xStepSize, float yStepSize, float zStepSize, float wStepSize, int seed)
+    public OutputMinMax GenUniformGrid4D(Span<float> noiseOut,
+                            float xOffset, float yOffset, float zOffset, float wOffset,
+                            int xCount, int yCount, int zCount, int wCount,
+                            float xStepSize, float yStepSize, float zStepSize, float wStepSize, int seed)
     {
-        float[] minMax = new float[2];
-        fnGenUniformGrid4D(mNodeHandle, noiseOut, xOffset, yOffset, zOffset, wOffset, xCount, yCount, zCount, wCount, xStepSize, yStepSize, zStepSize, wStepSize, seed, minMax);
+        if (noiseOut.Length < xCount * yCount * zCount * wCount)
+            throw new ArgumentException($"Output buffer too small. Required: {xCount * yCount * zCount * wCount}, Provided: {noiseOut.Length}");
+
+        Span<float> minMax = stackalloc float[2];
+        fnGenUniformGrid4DSpan(mNodeHandle,
+            ref MemoryMarshal.GetReference(noiseOut),
+            xOffset, yOffset, zOffset, wOffset,
+            xCount, yCount, zCount, wCount,
+            xStepSize, yStepSize, zStepSize, wStepSize, seed,
+            ref MemoryMarshal.GetReference(minMax));
         return new OutputMinMax(minMax);
     }
 
-    public OutputMinMax GenTileable2D(float[] noiseOut,
-                                   int xSize, int ySize,
-                                   float xStepSize, float yStepSize, int seed)
+    public OutputMinMax GenTileable2D(Span<float> noiseOut,
+                            int xSize, int ySize,
+                            float xStepSize, float yStepSize, int seed)
     {
-        float[] minMax = new float[2];
-        fnGenTileable2D(mNodeHandle, noiseOut, xSize, ySize, xStepSize, yStepSize, seed, minMax);
+        if (noiseOut.Length < xSize * ySize)
+            throw new ArgumentException($"Output buffer too small. Required: {xSize * ySize}, Provided: {noiseOut.Length}");
+
+        Span<float> minMax = stackalloc float[2];
+        fnGenTileable2DSpan(mNodeHandle,
+            ref MemoryMarshal.GetReference(noiseOut),
+            xSize, ySize, xStepSize, yStepSize, seed,
+            ref MemoryMarshal.GetReference(minMax));
         return new OutputMinMax(minMax);
     }
 
-    public OutputMinMax GenPositionArray2D(float[] noiseOut,
-                                         float[] xPosArray, float[] yPosArray,
-                                         float xOffset, float yOffset,
-                                         int seed)
+    public OutputMinMax GenPositionArray2D(Span<float> noiseOut,
+                            ReadOnlySpan<float> xPosArray, ReadOnlySpan<float> yPosArray,
+                            float xOffset, float yOffset,
+                            int seed)
     {
-        float[] minMax = new float[2];
-        fnGenPositionArray2D(mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, xOffset, yOffset, seed, minMax);
+        if (xPosArray.Length != yPosArray.Length)
+            throw new ArgumentException("Position arrays must have the same length");
+        
+        if (noiseOut.Length < xPosArray.Length)
+            throw new ArgumentException($"Output buffer too small. Required: {xPosArray.Length}, Provided: {noiseOut.Length}");
+
+        Span<float> minMax = stackalloc float[2];
+        fnGenPositionArray2DSpan(mNodeHandle,
+            ref MemoryMarshal.GetReference(noiseOut),
+            xPosArray.Length,
+            in MemoryMarshal.GetReference(xPosArray),
+            in MemoryMarshal.GetReference(yPosArray),
+            xOffset, yOffset, seed,
+            ref MemoryMarshal.GetReference(minMax));
         return new OutputMinMax(minMax);
     }
 
-    public OutputMinMax GenPositionArray3D(float[] noiseOut,
-                                         float[] xPosArray, float[] yPosArray, float[] zPosArray,
-                                         float xOffset, float yOffset, float zOffset, 
-                                         int seed)
+    public OutputMinMax GenPositionArray3D(Span<float> noiseOut,
+                            ReadOnlySpan<float> xPosArray, ReadOnlySpan<float> yPosArray, ReadOnlySpan<float> zPosArray,
+                            float xOffset, float yOffset, float zOffset,
+                            int seed)
     {
-        float[] minMax = new float[2];
-        fnGenPositionArray3D(mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, zPosArray, xOffset, yOffset, zOffset, seed, minMax);
+        if (xPosArray.Length != yPosArray.Length || xPosArray.Length != zPosArray.Length)
+            throw new ArgumentException("Position arrays must have the same length");
+        
+        if (noiseOut.Length < xPosArray.Length)
+            throw new ArgumentException($"Output buffer too small. Required: {xPosArray.Length}, Provided: {noiseOut.Length}");
+
+        Span<float> minMax = stackalloc float[2];
+        fnGenPositionArray3DSpan(mNodeHandle,
+            ref MemoryMarshal.GetReference(noiseOut),
+            xPosArray.Length,
+            in MemoryMarshal.GetReference(xPosArray),
+            in MemoryMarshal.GetReference(yPosArray),
+            in MemoryMarshal.GetReference(zPosArray),
+            xOffset, yOffset, zOffset, seed,
+            ref MemoryMarshal.GetReference(minMax));
         return new OutputMinMax(minMax);
     }
 
-    public OutputMinMax GenPositionArray4D(float[] noiseOut,
-                                         float[] xPosArray, float[] yPosArray, float[] zPosArray, float[] wPosArray,
-                                         float xOffset, float yOffset, float zOffset, float wOffset,
-                                         int seed)
+    public OutputMinMax GenPositionArray4D(Span<float> noiseOut,
+                            ReadOnlySpan<float> xPosArray, ReadOnlySpan<float> yPosArray, ReadOnlySpan<float> zPosArray, ReadOnlySpan<float> wPosArray,
+                            float xOffset, float yOffset, float zOffset, float wOffset,
+                            int seed)
     {
-        float[] minMax = new float[2];
-        fnGenPositionArray4D(mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, zPosArray, wPosArray, xOffset, yOffset, zOffset, wOffset, seed, minMax);
+        if (xPosArray.Length != yPosArray.Length || xPosArray.Length != zPosArray.Length || xPosArray.Length != wPosArray.Length)
+            throw new ArgumentException("Position arrays must have the same length");
+        
+        if (noiseOut.Length < xPosArray.Length)
+            throw new ArgumentException($"Output buffer too small. Required: {xPosArray.Length}, Provided: {noiseOut.Length}");
+
+        Span<float> minMax = stackalloc float[2];
+        fnGenPositionArray4DSpan(mNodeHandle,
+            ref MemoryMarshal.GetReference(noiseOut),
+            xPosArray.Length,
+            in MemoryMarshal.GetReference(xPosArray),
+            in MemoryMarshal.GetReference(yPosArray),
+            in MemoryMarshal.GetReference(zPosArray),
+            in MemoryMarshal.GetReference(wPosArray),
+            xOffset, yOffset, zOffset, wOffset, seed,
+            ref MemoryMarshal.GetReference(minMax));
         return new OutputMinMax(minMax);
     }
 
@@ -436,50 +505,51 @@ class FastNoise : IDisposable
     [DllImport(NATIVE_LIB)]
     private static extern int fnGetMetadataID(IntPtr nodeHandle);
 
+    // Span<T> P/Invoke declarations using ref for zero-copy interop
     [DllImport(NATIVE_LIB)]
-    private static extern void fnGenUniformGrid2D(IntPtr nodeHandle, float[] noiseOut,
+    private static extern void fnGenUniformGrid2D(IntPtr nodeHandle, ref float noiseOut,
                                    float xOffset, float yOffset,
                                    int xCount, int yCount,
                                    float xStepSize, float yStepSize,
-                                   int seed, float[] outputMinMax);
+                                   int seed, ref float outputMinMax);
 
     [DllImport(NATIVE_LIB)]
-    private static extern void fnGenUniformGrid3D(IntPtr nodeHandle, float[] noiseOut,
+    private static extern void fnGenUniformGrid3D(IntPtr nodeHandle, ref float noiseOut,
                                    float xOffset, float yOffset, float zOffset,
                                    int xCount, int yCount, int zCount,
                                    float xStepSize, float yStepSize, float zStepSize,
-                                   int seed, float[] outputMinMax);
+                                   int seed, ref float outputMinMax);
 
     [DllImport(NATIVE_LIB)]
-    private static extern void fnGenUniformGrid4D(IntPtr nodeHandle, float[] noiseOut,
+    private static extern void fnGenUniformGrid4D(IntPtr nodeHandle, ref float noiseOut,
                                    float xOffset, float yOffset, float zOffset, float wOffset,
                                    int xCount, int yCount, int zCount, int wCount,
                                    float xStepSize, float yStepSize, float zStepSize, float wStepSize,
-                                   int seed, float[] outputMinMax);
+                                   int seed, ref float outputMinMax);
 
     [DllImport(NATIVE_LIB)]
-    private static extern void fnGenTileable2D(IntPtr node, float[] noiseOut,
+    private static extern void fnGenTileable2D(IntPtr node, ref float noiseOut,
                                    int xSize, int ySize,
                                    float xStepSize, float yStepSize,
-                                   int seed, float[] outputMinMax);
+                                   int seed, ref float outputMinMax);
 
     [DllImport(NATIVE_LIB)]
-    private static extern void fnGenPositionArray2D(IntPtr node, float[] noiseOut, int count,
-                                   float[] xPosArray, float[] yPosArray,
+    private static extern void fnGenPositionArray2D(IntPtr node, ref float noiseOut, int count,
+                                   in float xPosArray, in float yPosArray,
                                    float xOffset, float yOffset,
-                                   int seed, float[] outputMinMax);
+                                   int seed, ref float outputMinMax);
 
     [DllImport(NATIVE_LIB)]
-    private static extern void fnGenPositionArray3D(IntPtr node, float[] noiseOut, int count,
-                                   float[] xPosArray, float[] yPosArray, float[] zPosArray,
+    private static extern void fnGenPositionArray3D(IntPtr node, ref float noiseOut, int count,
+                                   in float xPosArray, in float yPosArray, in float zPosArray,
                                    float xOffset, float yOffset, float zOffset,
-                                   int seed, float[] outputMinMax);
+                                   int seed, ref float outputMinMax);
 
     [DllImport(NATIVE_LIB)]
-    private static extern void fnGenPositionArray4D(IntPtr node, float[] noiseOut, int count,
-                                   float[] xPosArray, float[] yPosArray, float[] zPosArray, float[] wPosArray,
+    private static extern void fnGenPositionArray4D(IntPtr node, ref float noiseOut, int count,
+                                   in float xPosArray, in float yPosArray, in float zPosArray, in float wPosArray,
                                    float xOffset, float yOffset, float zOffset, float wOffset,
-                                   int seed, float[] outputMinMax);
+                                   int seed, ref float outputMinMax);
 
     [DllImport(NATIVE_LIB)]
     private static extern float fnGenSingle2D(IntPtr node, float x, float y, int seed);
