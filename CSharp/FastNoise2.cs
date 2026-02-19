@@ -195,7 +195,7 @@ class FastNoise : IDisposable
             throw new ArgumentException($"Output buffer too small. Required: {xCount * yCount}, Provided: {noiseOut.Length}");
 
         Span<float> minMax = stackalloc float[2];
-        fnGenUniformGrid2DSpan(mNodeHandle, 
+        fnGenUniformGrid2D(mNodeHandle, 
             ref MemoryMarshal.GetReference(noiseOut),
             xOffset, yOffset, xCount, yCount, 
             xStepSize, yStepSize, seed, 
@@ -212,7 +212,7 @@ class FastNoise : IDisposable
             throw new ArgumentException($"Output buffer too small. Required: {xCount * yCount * zCount}, Provided: {noiseOut.Length}");
 
         Span<float> minMax = stackalloc float[2];
-        fnGenUniformGrid3DSpan(mNodeHandle,
+        fnGenUniformGrid3D(mNodeHandle,
             ref MemoryMarshal.GetReference(noiseOut),
             xOffset, yOffset, zOffset, 
             xCount, yCount, zCount,
@@ -230,7 +230,7 @@ class FastNoise : IDisposable
             throw new ArgumentException($"Output buffer too small. Required: {xCount * yCount * zCount * wCount}, Provided: {noiseOut.Length}");
 
         Span<float> minMax = stackalloc float[2];
-        fnGenUniformGrid4DSpan(mNodeHandle,
+        fnGenUniformGrid4D(mNodeHandle,
             ref MemoryMarshal.GetReference(noiseOut),
             xOffset, yOffset, zOffset, wOffset,
             xCount, yCount, zCount, wCount,
@@ -247,7 +247,7 @@ class FastNoise : IDisposable
             throw new ArgumentException($"Output buffer too small. Required: {xSize * ySize}, Provided: {noiseOut.Length}");
 
         Span<float> minMax = stackalloc float[2];
-        fnGenTileable2DSpan(mNodeHandle,
+        fnGenTileable2D(mNodeHandle,
             ref MemoryMarshal.GetReference(noiseOut),
             xSize, ySize, xStepSize, yStepSize, seed,
             ref MemoryMarshal.GetReference(minMax));
@@ -266,7 +266,7 @@ class FastNoise : IDisposable
             throw new ArgumentException($"Output buffer too small. Required: {xPosArray.Length}, Provided: {noiseOut.Length}");
 
         Span<float> minMax = stackalloc float[2];
-        fnGenPositionArray2DSpan(mNodeHandle,
+        fnGenPositionArray2D(mNodeHandle,
             ref MemoryMarshal.GetReference(noiseOut),
             xPosArray.Length,
             in MemoryMarshal.GetReference(xPosArray),
@@ -288,7 +288,7 @@ class FastNoise : IDisposable
             throw new ArgumentException($"Output buffer too small. Required: {xPosArray.Length}, Provided: {noiseOut.Length}");
 
         Span<float> minMax = stackalloc float[2];
-        fnGenPositionArray3DSpan(mNodeHandle,
+        fnGenPositionArray3D(mNodeHandle,
             ref MemoryMarshal.GetReference(noiseOut),
             xPosArray.Length,
             in MemoryMarshal.GetReference(xPosArray),
@@ -311,7 +311,7 @@ class FastNoise : IDisposable
             throw new ArgumentException($"Output buffer too small. Required: {xPosArray.Length}, Provided: {noiseOut.Length}");
 
         Span<float> minMax = stackalloc float[2];
-        fnGenPositionArray4DSpan(mNodeHandle,
+        fnGenPositionArray4D(mNodeHandle,
             ref MemoryMarshal.GetReference(noiseOut),
             xPosArray.Length,
             in MemoryMarshal.GetReference(xPosArray),
@@ -505,7 +505,6 @@ class FastNoise : IDisposable
     [DllImport(NATIVE_LIB)]
     private static extern int fnGetMetadataID(IntPtr nodeHandle);
 
-    // Span<T> P/Invoke declarations using ref for zero-copy interop
     [DllImport(NATIVE_LIB)]
     private static extern void fnGenUniformGrid2D(IntPtr nodeHandle, ref float noiseOut,
                                    float xOffset, float yOffset,
